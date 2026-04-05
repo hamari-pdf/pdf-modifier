@@ -18,8 +18,8 @@
     <div class="card">
         <h2 style="color:#58a6ff;">🚀 @hamari_pdf — Link Injector</h2>
         <p style="color:#8b949e; font-size:13px;">
-            Har page pe <b>"Click Here - @hamari_pdf"</b> text aayega.<br>
-            Sirf us text pe tap karo — channel khulega! 
+            Har page pe bada <b>"CLICK HERE - @HAMARI_PDF"</b> text aayega.<br>
+            Sirf us text pe tap karo — channel khulega!
         </p>
         <input type="file" id="pdfInput" accept="application/pdf">
         <button id="btn" onclick="processPDF()">🔗 INJECT & DOWNLOAD ✅</button>
@@ -36,7 +36,7 @@ async function processPDF() {
 
     const originalName = input.files[0].name;
     const targetLink   = 'https://t.me/hamari_pdf';
-    const clickText    = 'Click Here - @hamari_pdf';
+    const clickText    = 'CLICK HERE - @HAMARI_PDF';  // Capital letters
 
     btn.disabled       = true;
     status.innerText   = "⏳ Processing...";
@@ -49,10 +49,9 @@ async function processPDF() {
         const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
         const pages  = pdfDoc.getPages();
 
-        // Text width approximate (font size * 0.5 * chars) for annotation rect
-        const fontSize   = 13;
-        const textWidth  = clickText.length * fontSize * 0.52; // approximate
-        const textHeight = fontSize + 4;
+        const fontSize   = 20;                          // BADA font size
+        const textWidth  = clickText.length * fontSize * 0.52;
+        const textHeight = fontSize + 6;
 
         for (const page of pages) {
             const { width, height } = page.getSize();
@@ -60,27 +59,26 @@ async function processPDF() {
             // ── 1. Purani saari annotations remove ──
             page.node.delete(PDFName.of('Annots'));
 
-            // ── 2. Text position — top center ──
+            // ── 2. Text center mein top par ──
             const textX = (width - textWidth) / 2;
-            const textY = height - 22;
+            const textY = height - 28;
 
-            // ── 3. Sirf "Click Here - @hamari_pdf" text likho — blue color ──
+            // ── 3. BADA "CLICK HERE - @HAMARI_PDF" text ──
             page.drawText(clickText, {
                 x:    textX,
                 y:    textY,
                 size: fontSize,
-                color: rgb(0.13, 0.44, 0.78),  // blue jaise image mein
+                color: rgb(0.13, 0.44, 0.78),
             });
 
-            // ── 4. Clickable annotation SIRF us text ke upar ──
+            // ── 4. Clickable annotation sirf text ke upar ──
             const linkAnnot = pdfDoc.context.obj({
                 Type:    'Annot',
                 Subtype: 'Link',
-                // Rect sirf text area ke upar
                 Rect: pdfDoc.context.obj([
-                    textX,
-                    textY - 2,
-                    textX + textWidth,
+                    textX - 4,
+                    textY - 4,
+                    textX + textWidth + 4,
                     textY + textHeight
                 ]),
                 F:      4,
