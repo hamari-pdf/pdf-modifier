@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@hamari_pdf Tool Pro</title>
+    <title>@hamari_pdf Tool Final</title>
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
     <style>
-        body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; padding: 40px 10px; }
-        .card { background: #161b22; border: 1px solid #30363d; padding: 30px; border-radius: 12px; display: inline-block; width: 100%; max-width: 380px; }
+        body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; padding: 40px 15px; }
+        .card { background: #161b22; border: 1px solid #30363d; padding: 30px; border-radius: 12px; display: inline-block; width: 100%; max-width: 400px; }
         button { background: #238636; color: white; padding: 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px; font-size: 16px; }
-        #status { margin-top: 20px; font-weight: bold; font-size: 14px; }
+        #status { margin-top: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2 style="color:#58a6ff;">🚀 @hamari_pdf Final</h2>
+        <h2 style="color:#58a6ff;">🚀 @hamari_pdf Final Fix</h2>
         <p style="color:#8b949e; font-size:12px;">Link: https://t.me/hamari_pdf</p>
         
         <input type="file" id="pdfInput" accept="application/pdf">
-        <button id="btn" onclick="processPDF()">FIX & DOWNLOAD ✅</button>
+        <button id="btn" onclick="processPDF()">FIX LINK & DOWNLOAD ✅</button>
         
-        <div id="status">Waiting...</div>
+        <div id="status">Waiting for file...</div>
     </div>
 
     <script>
@@ -33,37 +33,39 @@
             if (!input.files[0]) return alert("Pehle file chuno!");
 
             const originalName = input.files[0].name;
-            const myLink = 'https://t.me/hamari_pdf';
+            const targetLink = 'https://t.me/hamari_pdf'; // YAHI LINK HAI SAHI
 
             btn.disabled = true;
-            status.innerText = "Processing... Thoda sabr rakho ⏳";
+            status.innerText = "Cleaning Old Links & Injecting New... ⏳";
             status.style.color = "#e3b341";
 
             try {
                 const arrayBuffer = await input.files[0].arrayBuffer();
                 const { PDFDocument, rgb, PDFString, PDFName } = PDFLib;
 
-                // Load PDF (Bina kisi extra setting ke for speed)
                 const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
                 const pages = pdfDoc.getPages();
 
                 for (const page of pages) {
                     const { width, height } = page.getSize();
 
-                    // 1. Top White Box (Watermark hide karne ke liye)
+                    // 1. PURANE LINKS KO DELETE KARNA (CRITICAL STEP)
+                    page.node.delete(PDFName.of('Annots'));
+
+                    // 2. White Box (Top Strip)
                     page.drawRectangle({
                         x: 0, y: height - 35,
                         width: width, height: 35,
                         color: rgb(1, 1, 1)
                     });
 
-                    // 2. Branding @hamari_pdf
-                    page.drawText('Join: @hamari_pdf', {
+                    // 3. Branding
+                    page.drawText('🚀 Join: @hamari_pdf', {
                         x: 20, y: height - 23,
                         size: 13, color: rgb(0, 0.4, 0.8)
                     });
 
-                    // 3. FULL PAGE LINK (Universal Method)
+                    // 4. NAYA LINK INJECTION (Pure page par)
                     const linkAnnot = pdfDoc.context.obj({
                         Type: 'Annot',
                         Subtype: 'Link',
@@ -72,22 +74,15 @@
                         A: {
                             Type: 'Action',
                             S: 'URI',
-                            URI: PDFString.of(myLink)
+                            URI: PDFString.of(targetLink)
                         }
                     });
 
                     const linkRef = pdfDoc.context.register(linkAnnot);
-                    let annots = page.node.get(PDFName.of('Annots'));
-
-                    if (!annots) {
-                        page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([linkRef]));
-                    } else {
-                        const resolvedAnnots = pdfDoc.context.lookup(annots);
-                        resolvedAnnots.push(linkRef);
-                    }
+                    // Naya Annots array banana jisme sirf AAPKA link ho
+                    page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([linkRef]));
                 }
 
-                // Metadata preserve karke save karna
                 const pdfBytes = await pdfDoc.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 const url = URL.createObjectURL(blob);
@@ -99,11 +94,11 @@
                 a.click();
                 document.body.removeChild(a);
 
-                status.innerText = "SUCCESS! Download Shuru ✅";
+                status.innerText = "SUCCESS! Link Changed ✅";
                 status.style.color = "#3fb950";
             } catch (err) {
                 console.error(err);
-                status.innerText = "Error: File memory se bahar hai ya encrypted hai.";
+                status.innerText = "Error: File encryption bohot high hai.";
                 status.style.color = "#f85149";
             } finally {
                 btn.disabled = false;
