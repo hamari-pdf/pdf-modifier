@@ -18,7 +18,8 @@
     <div class="card">
         <h2 style="color:#58a6ff;">🚀 @hamari_pdf — Link Injector</h2>
         <p style="color:#8b949e; font-size:13px;">
-            Har page pe bada <b>@hamari_pdf</b> naam + clickable link visible hogi top par.
+            Har page pe <b>"Click Here - @hamari_pdf"</b> text aayega.<br>
+            Sirf us text pe tap karo — channel khulega! 
         </p>
         <input type="file" id="pdfInput" accept="application/pdf">
         <button id="btn" onclick="processPDF()">🔗 INJECT & DOWNLOAD ✅</button>
@@ -35,8 +36,7 @@ async function processPDF() {
 
     const originalName = input.files[0].name;
     const targetLink   = 'https://t.me/hamari_pdf';
-    const displayLink  = 't.me/hamari_pdf';
-    const channelName  = '@hamari_pdf';
+    const clickText    = 'Click Here - @hamari_pdf';
 
     btn.disabled       = true;
     status.innerText   = "⏳ Processing...";
@@ -49,47 +49,44 @@ async function processPDF() {
         const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
         const pages  = pdfDoc.getPages();
 
+        // Text width approximate (font size * 0.5 * chars) for annotation rect
+        const fontSize   = 13;
+        const textWidth  = clickText.length * fontSize * 0.52; // approximate
+        const textHeight = fontSize + 4;
+
         for (const page of pages) {
             const { width, height } = page.getSize();
 
             // ── 1. Purani saari annotations remove ──
             page.node.delete(PDFName.of('Annots'));
 
-            // ── 2. White strip — thodi badi height (naam + link dono fit hon) ──
-            const stripHeight = 38;
-            page.drawRectangle({
-                x: 0,
-                y: height - stripHeight,
-                width: width,
-                height: stripHeight,
-                color: rgb(1, 1, 1),
+            // ── 2. Text position — top center ──
+            const textX = (width - textWidth) / 2;
+            const textY = height - 22;
+
+            // ── 3. Sirf "Click Here - @hamari_pdf" text likho — blue color ──
+            page.drawText(clickText, {
+                x:    textX,
+                y:    textY,
+                size: fontSize,
+                color: rgb(0.13, 0.44, 0.78),  // blue jaise image mein
             });
 
-            // ── 3. Bada @hamari_pdf naam ──
-            page.drawText(channelName, {
-                x: 10,
-                y: height - 16,
-                size: 14,           // BADA size
-                color: rgb(0.04, 0.39, 0.8),
-            });
-
-            // ── 4. Visible link uske neeche ──
-            page.drawText(displayLink, {
-                x: 10,
-                y: height - 30,
-                size: 9,
-                color: rgb(0.0, 0.53, 0.84),
-            });
-
-            // ── 5. Clickable annotation sirf strip ke upar (visible area) ──
+            // ── 4. Clickable annotation SIRF us text ke upar ──
             const linkAnnot = pdfDoc.context.obj({
                 Type:    'Annot',
                 Subtype: 'Link',
-                Rect:    pdfDoc.context.obj([0, height - stripHeight, width, height]),
-                F:       4,
-                Border:  pdfDoc.context.obj([0, 0, 0]),
-                BS:      pdfDoc.context.obj({ W: 0 }),
-                H:       'N',
+                // Rect sirf text area ke upar
+                Rect: pdfDoc.context.obj([
+                    textX,
+                    textY - 2,
+                    textX + textWidth,
+                    textY + textHeight
+                ]),
+                F:      4,
+                Border: pdfDoc.context.obj([0, 0, 0]),
+                BS:     pdfDoc.context.obj({ W: 0 }),
+                H:      'N',
                 A: {
                     Type: 'Action',
                     S:    'URI',
@@ -104,7 +101,7 @@ async function processPDF() {
             );
         }
 
-        // ── 6. Save & Download — same naam ──
+        // ── 5. Save & Download — same naam ──
         const pdfBytes = await pdfDoc.save();
         const blob     = new Blob([pdfBytes], { type: 'application/pdf' });
         const url      = URL.createObjectURL(blob);
