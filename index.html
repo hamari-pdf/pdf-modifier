@@ -3,94 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@hamari_pdf Tool Pro</title>
+    <title>PDF Tool - @hamari_pdf</title>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <style>
-        body { text-align: center; font-family: sans-serif; background: #0f172a; color: white; padding: 30px; }
-        .box { background: #1e293b; padding: 30px; border-radius: 15px; border: 1px solid #334155; display: inline-block; max-width: 90%; }
-        h2 { color: #38bdf8; }
-        input { margin: 20px 0; width: 100%; }
-        button { background: #38bdf8; color: #0f172a; padding: 15px 30px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; }
-        #status { margin-top: 20px; font-size: 14px; }
+        body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 40px 20px; }
+        .main-card { background: #1e293b; border: 2px solid #334155; padding: 30px; border-radius: 20px; display: inline-block; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #38bdf8; margin-bottom: 10px; }
+        .info { font-size: 13px; color: #94a3b8; margin-bottom: 20px; }
+        input[type="file"] { background: #0f172a; padding: 10px; border-radius: 8px; border: 1px dashed #38bdf8; width: 100%; margin-bottom: 20px; cursor: pointer; }
+        #processBtn { background: linear-gradient(90deg, #38bdf8, #2563eb); color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        #processBtn:disabled { background: #475569; cursor: not-allowed; }
+        #status { margin-top: 20px; font-weight: 500; font-size: 14px; }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
     </style>
 </head>
 <body>
 
-    <div class="box">
-        <h2>🔥 @hamari_pdf Magic</h2>
-        <p>Watermark + Full Page Clickable Link</p>
-        
-        <input type="file" id="pdfInput" accept="application/pdf">
-        <button id="mainBtn" onclick="processPDF()">Start Processing ⚡</button>
-        
-        <div id="status">Ready...</div>
+    <div class="main-card">
+        <h2>🚀 @hamari_pdf Tool</h2>
+        <div class="info">Auto-Remove Old Name + Full Page Click Link</div>
+
+        <input type="file" id="pdf-file" accept="application/pdf">
+        <button id="processBtn" onclick="startWork()">Magic Generate ⚡</button>
+
+        <div id="status">Taiyar hain...</div>
     </div>
 
     <script>
-        async function processPDF() {
-            const input = document.getElementById('pdfInput');
+        async function startWork() {
+            const fileInput = document.getElementById('pdf-file');
             const status = document.getElementById('status');
-            const btn = document.getElementById('mainBtn');
+            const btn = document.getElementById('processBtn');
 
-            if (!input.files[0]) return alert("Pehle file select karo!");
+            if (!fileInput.files[0]) {
+                alert("Bhai pehle file to chuno!");
+                return;
+            }
 
-            status.innerText = "Processing... Mobile par thoda wait karein ⏳";
-            status.style.color = "#fbbf24";
             btn.disabled = true;
+            status.innerText = "Processing... (Badi file hai to thoda wait karo) ⏳";
+            status.className = "";
 
             try {
-                const arrayBuffer = await input.files[0].arrayBuffer();
-                const { PDFDocument, rgb, PDFString } = PDFLib;
+                const arrayBuffer = await fileInput.files[0].arrayBuffer();
+                const { PDFDocument, rgb, PDFString, PDFName } = PDFLib;
 
-                // Fast Load
+                // PDF Load (Safely)
                 const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
                 const pages = pdfDoc.getPages();
+                const telegramLink = 'https://t.me/hamari_pdf';
 
                 for (const page of pages) {
                     const { width, height } = page.getSize();
 
-                    // 1. Top White Cover (Purana hatane ke liye)
+                    // 1. TOP STRIP: Purana name hatane ke liye white background
                     page.drawRectangle({
                         x: 0, y: height - 35,
                         width: width, height: 35,
                         color: rgb(1, 1, 1)
                     });
 
-                    // 2. Branding Text
-                    page.drawText('@hamari_pdf | Click here to Join', {
+                    // 2. LOGO/TEXT: @hamari_pdf add karna
+                    page.drawText('🚀 Join: @hamari_pdf', {
                         x: 20, y: height - 22,
-                        size: 12, color: rgb(0, 0.4, 0.8)
+                        size: 13, color: rgb(0, 0.45, 0.75)
                     });
 
-                    // 3. Invisible Link (Full Page)
-                    const link = pdfDoc.context.obj({
-                        Type: 'Annot', Subtype: 'Link',
-                        Rect: [0, 0, width, height],
+                    // 3. FULL PAGE CLICK: Pure page par invisible link
+                    const linkAnnotation = pdfDoc.context.obj({
+                        Type: 'Annot',
+                        Subtype: 'Link',
+                        Rect: [0, 0, width, height], // Pura page area
                         Border: [0, 0, 0],
-                        A: { Type: 'Action', S: 'URI', URI: PDFString.of('https://t.me/hamari_pdf') }
+                        A: { Type: 'Action', S: 'URI', URI: PDFString.of(telegramLink) }
                     });
+
+                    const linkRef = pdfDoc.context.register(linkAnnotation);
+                    let annots = page.node.get(PDFName.of('Annots'));
                     
-                    const linkRef = pdfDoc.context.register(link);
-                    const annots = page.node.get(PDFLib.PDFName.of('Annots')) || pdfDoc.context.obj([]);
-                    if (!page.node.has(PDFLib.PDFName.of('Annots'))) page.node.set(PDFLib.PDFName.of('Annots'), annots);
+                    if (!annots) {
+                        annots = pdfDoc.context.obj([]);
+                        page.node.set(PDFName.of('Annots'), annots);
+                    }
                     annots.push(linkRef);
                 }
 
-                // Save and Download
+                // File Save & Download
                 const pdfBytes = await pdfDoc.save();
-                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "Hamari_PDF_" + Date.now() + ".pdf";
-                a.click();
+                const blob = new Blob([pdfBytes], { type: "application/pdf" });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = "Hamari_PDF_Pro_" + Date.now() + ".pdf";
+                link.click();
 
-                status.innerText = "Success! ✅ Downloaded";
-                status.style.color = "#4ade80";
-            } catch (e) {
-                console.error(e);
-                status.innerText = "Error: File size zyada hai ya browser weak hai.";
-                status.style.color = "#f87171";
+                status.innerText = "Success! PDF Download ho gayi ✅";
+                status.className = "success";
+            } catch (err) {
+                console.error(err);
+                status.innerText = "Error: Browser ne mana kar diya (Badi file ya lock PDF).";
+                status.className = "error";
             } finally {
                 btn.disabled = false;
             }
