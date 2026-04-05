@@ -18,8 +18,8 @@
     <div class="card">
         <h2 style="color:#58a6ff;">🚀 @hamari_pdf — Link Injector Tool</h2>
         <p style="color:#8b949e; font-size:13px;">
-            Har page pe hamari branding + clickable link add hogi.<br>
-            Channel: <a href="https://t.me/hamari_pdf" target="_blank" style="color:#58a6ff;">https://t.me/hamari_pdf</a>
+            Har page pe sirf <b>@hamari_pdf</b> naam aur poora page clickable link hoga.<br>
+            Purani saari links remove ho jayengi.
         </p>
 
         <input type="file" id="pdfInput" accept="application/pdf">
@@ -38,15 +38,14 @@
 
             const originalName = input.files[0].name;
             const targetLink = 'https://t.me/hamari_pdf';
-            const brandText = 'Join: @hamari_pdf | t.me/hamari_pdf';
 
             btn.disabled = true;
-            status.innerText = "Processing... Removing old links & injecting new one...";
+            status.innerText = "Processing... Purani links remove ho rahi hain ⏳";
             status.style.color = "#e3b341";
 
             try {
                 const arrayBuffer = await input.files[0].arrayBuffer();
-                const { PDFDocument, rgb, PDFString, PDFName, PDFArray } = PDFLib;
+                const { PDFDocument, rgb, PDFString, PDFName } = PDFLib;
 
                 const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
                 const pages = pdfDoc.getPages();
@@ -54,33 +53,35 @@
                 for (const page of pages) {
                     const { width, height } = page.getSize();
 
-                    // STEP 1: Delete all old annotations (links etc.)
+                    // ── STEP 1: Purani SAARI annotations/links delete karo ──
                     page.node.delete(PDFName.of('Annots'));
 
-                    // STEP 2: Draw white strip at top of every page
+                    // ── STEP 2: Top par sirf "@hamari_pdf" text likho ──
+                    // Pehle ek choti white background strip
                     page.drawRectangle({
                         x: 0,
-                        y: height - 28,
+                        y: height - 22,
                         width: width,
-                        height: 28,
+                        height: 22,
                         color: rgb(1, 1, 1),
                         opacity: 1,
                     });
 
-                    // STEP 3: Draw branding text on white strip
-                    page.drawText(brandText, {
-                        x: 12,
-                        y: height - 18,
+                    // Sirf @hamari_pdf naam
+                    page.drawText('@hamari_pdf', {
+                        x: 10,
+                        y: height - 15,
                         size: 10,
                         color: rgb(0, 0.35, 0.75),
                     });
 
-                    // STEP 4: Add clickable URI annotation over the full strip
-                    const linkAnnot = pdfDoc.context.obj({
+                    // ── STEP 3: POORA PAGE clickable link banana ──
+                    const fullPageLink = pdfDoc.context.obj({
                         Type: 'Annot',
                         Subtype: 'Link',
-                        Rect: [0, height - 28, width, height],
-                        Border: [0, 0, 0],
+                        // Rect = [x1, y1, x2, y2] — poora page cover karo
+                        Rect: [0, 0, width, height],
+                        Border: [0, 0, 0],   // koi border nahi dikhega
                         A: {
                             Type: 'Action',
                             S: 'URI',
@@ -88,11 +89,11 @@
                         },
                     });
 
-                    const annotRef = pdfDoc.context.register(linkAnnot);
+                    const annotRef = pdfDoc.context.register(fullPageLink);
                     page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([annotRef]));
                 }
 
-                // STEP 5: Save PDF and trigger download with SAME original filename
+                // ── STEP 4: Save & Download with SAME original name ──
                 const pdfBytes = await pdfDoc.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 const url = URL.createObjectURL(blob);
