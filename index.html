@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@hamari_pdf Final Fix</title>
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <title>Hamari PDF - Final Pro</title>
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
     <style>
-        body { background: #010409; color: white; font-family: sans-serif; text-align: center; padding: 40px 15px; }
-        .card { background: #0d1117; border: 1px solid #30363d; padding: 30px; border-radius: 12px; display: inline-block; width: 100%; max-width: 400px; }
-        button { background: #238636; color: white; padding: 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px; }
-        #status { margin-top: 20px; font-weight: bold; font-size: 14px; }
+        body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; padding: 50px 20px; }
+        .card { background: #161b22; border: 2px solid #30363d; padding: 30px; border-radius: 12px; display: inline-block; width: 100%; max-width: 400px; }
+        input { margin-bottom: 20px; width: 100%; }
+        button { background: #238636; color: white; padding: 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; }
+        #status { margin-top: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2 style="color:#58a6ff;">🚀 @hamari_pdf Pro</h2>
-        <p style="color:#8b949e; font-size:12px;">Link: https://t.me/hamari_pdf</p>
+        <h2 style="color:#58a6ff;">🚀 @hamari_pdf Fixer</h2>
+        <p style="font-size: 12px; color: #8b949e; margin-bottom: 20px;">Direct Link Injection | Original Name</p>
         
         <input type="file" id="pdfInput" accept="application/pdf">
-        <button id="btn" onclick="processPDF()">BYPASS & DOWNLOAD ✅</button>
+        <button id="btn" onclick="processPDF()">MAGIC GENERATE ⚡</button>
         
         <div id="status">Taiyar...</div>
     </div>
@@ -30,47 +31,45 @@
             const status = document.getElementById('status');
             const btn = document.getElementById('btn');
 
-            if (!input.files[0]) return alert("Pehle file chuno bhai!");
+            if (!input.files[0]) return alert("Bhai file toh chuno!");
 
             const originalName = input.files[0].name;
             const myLink = 'https://t.me/hamari_pdf';
 
             btn.disabled = true;
-            status.innerText = "Heavy Protection Bypassing... ⏳";
+            status.innerText = "Processing... Please Wait ⏳";
             status.style.color = "#e3b341";
 
             try {
                 const arrayBuffer = await input.files[0].arrayBuffer();
                 const { PDFDocument, rgb, PDFString, PDFName } = PDFLib;
 
-                // FORCE LOAD - Har tarah ki security ignore karne ke liye
-                const srcDoc = await PDFDocument.load(arrayBuffer, { 
-                    ignoreEncryption: true,
-                    throwOnInvalidObject: false 
-                });
-                
-                const pdfDoc = await PDFDocument.create();
-                const copiedPages = await pdfDoc.copyPages(srcDoc, srcDoc.getPageIndices());
+                // 1. Load PDF with max safety
+                const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+                const pages = pdfDoc.getPages();
 
-                for (const page of copiedPages) {
+                for (const page of pages) {
                     const { width, height } = page.getSize();
-                    pdfDoc.addPage(page);
 
-                    // 1. White Box to hide old watermark
+                    // A. White Box (Top Strip) - Purana naam hatane ke liye
                     page.drawRectangle({
-                        x: 0, y: height - 35,
-                        width: width, height: 35,
-                        color: rgb(1, 1, 1)
+                        x: 0,
+                        y: height - 35,
+                        width: width,
+                        height: 35,
+                        color: rgb(1, 1, 1),
                     });
 
-                    // 2. Your Telegram Name
+                    // B. Naya Watermark
                     page.drawText('🚀 Join: @hamari_pdf', {
-                        x: 20, y: height - 23,
-                        size: 13, color: rgb(0, 0.4, 0.8)
+                        x: 20,
+                        y: height - 23,
+                        size: 13,
+                        color: rgb(0, 0.4, 0.8),
                     });
 
-                    // 3. THE MAGIC LINK (Pure page par)
-                    const linkAnnot = pdfDoc.context.obj({
+                    // C. Full Page Clickable Link (The Pro Way)
+                    const linkAnnotation = pdfDoc.context.obj({
                         Type: 'Annot',
                         Subtype: 'Link',
                         Rect: [0, 0, width, height],
@@ -78,28 +77,41 @@
                         A: {
                             Type: 'Action',
                             S: 'URI',
-                            URI: PDFString.of(myLink)
-                        }
+                            URI: PDFString.of(myLink),
+                        },
                     });
 
-                    const linkRef = pdfDoc.context.register(linkAnnot);
-                    page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([linkRef]));
+                    const linkRef = pdfDoc.context.register(linkAnnotation);
+                    
+                    // Safely adding to Annots
+                    let annots = page.node.get(PDFName.of('Annots'));
+                    if (!annots) {
+                        page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([linkRef]));
+                    } else {
+                        const existingAnnots = pdfDoc.context.lookup(annots);
+                        if (Array.isArray(existingAnnots.array) || existingAnnots.push) {
+                           existingAnnots.push(linkRef);
+                        }
+                    }
                 }
 
-                const pdfBytes = await pdfDoc.save({ useObjectStreams: false });
+                // 2. Save with metadata preservation
+                const pdfBytes = await pdfDoc.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 const url = URL.createObjectURL(blob);
                 
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = originalName;
+                document.body.appendChild(a);
                 a.click();
+                document.body.removeChild(a);
 
-                status.innerText = "SUCCESS! 1000% Accurate ✅";
+                status.innerText = "100% DONE ✅";
                 status.style.color = "#3fb950";
             } catch (err) {
                 console.error(err);
-                status.innerText = "Error: File encryption bohot high hai.";
+                status.innerText = "Error: Mobile browser memory full ya file locked.";
                 status.style.color = "#f85149";
             } finally {
                 btn.disabled = false;
