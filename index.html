@@ -3,27 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@hamari_pdf - Ultimate Fix</title>
+    <title>@hamari_pdf Final Fix</title>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <style>
-        body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; padding: 50px 20px; }
-        .card { background: #161b22; border: 2px solid #30363d; padding: 30px; border-radius: 12px; display: inline-block; width: 100%; max-width: 400px; }
-        h2 { color: #58a6ff; margin: 0 0 20px 0; }
-        input { margin-bottom: 20px; width: 100%; }
-        button { background: #238636; color: white; padding: 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; }
-        #status { margin-top: 20px; font-weight: bold; }
+        body { background: #010409; color: white; font-family: sans-serif; text-align: center; padding: 40px 15px; }
+        .card { background: #0d1117; border: 1px solid #30363d; padding: 30px; border-radius: 12px; display: inline-block; width: 100%; max-width: 400px; }
+        button { background: #238636; color: white; padding: 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px; }
+        #status { margin-top: 20px; font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2>🔥 @hamari_pdf Pro</h2>
-        <p style="font-size: 12px; color: #8b949e; margin-bottom: 20px;">Force Link Injection & Same Name</p>
+        <h2 style="color:#58a6ff;">🚀 @hamari_pdf Pro</h2>
+        <p style="color:#8b949e; font-size:12px;">Link: https://t.me/hamari_pdf</p>
         
         <input type="file" id="pdfInput" accept="application/pdf">
-        <button id="btn" onclick="processPDF()">FIX & DOWNLOAD ⚡</button>
+        <button id="btn" onclick="processPDF()">BYPASS & DOWNLOAD ✅</button>
         
-        <div id="status">Ready</div>
+        <div id="status">Taiyar...</div>
     </div>
 
     <script>
@@ -32,58 +30,63 @@
             const status = document.getElementById('status');
             const btn = document.getElementById('btn');
 
-            if (!input.files[0]) return alert("File chuno!");
+            if (!input.files[0]) return alert("Pehle file chuno bhai!");
 
             const originalName = input.files[0].name;
             const myLink = 'https://t.me/hamari_pdf';
 
             btn.disabled = true;
-            status.innerText = "Bypassing Locks... ⏳";
+            status.innerText = "Heavy Protection Bypassing... ⏳";
             status.style.color = "#e3b341";
 
             try {
                 const arrayBuffer = await input.files[0].arrayBuffer();
                 const { PDFDocument, rgb, PDFString, PDFName } = PDFLib;
 
-                // 1. Source PDF load karo (Encryption ignore karke)
-                const srcDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+                // FORCE LOAD - Har tarah ki security ignore karne ke liye
+                const srcDoc = await PDFDocument.load(arrayBuffer, { 
+                    ignoreEncryption: true,
+                    throwOnInvalidObject: false 
+                });
                 
-                // 2. Ek Naya Khali PDF banao (Security hatane ke liye)
                 const pdfDoc = await PDFDocument.create();
-                
-                // 3. Purane pages ko naye PDF mein copy karo
-                const pagesToCopy = srcDoc.getPageIndices();
-                const copiedPages = await pdfDoc.copyPages(srcDoc, pagesToCopy);
+                const copiedPages = await pdfDoc.copyPages(srcDoc, srcDoc.getPageIndices());
 
                 for (const page of copiedPages) {
-                    pdfDoc.addPage(page);
                     const { width, height } = page.getSize();
+                    pdfDoc.addPage(page);
 
-                    // Masking (Purana naam chhupane ke liye)
+                    // 1. White Box to hide old watermark
                     page.drawRectangle({
                         x: 0, y: height - 35,
                         width: width, height: 35,
                         color: rgb(1, 1, 1)
                     });
 
-                    // Naya Branding
+                    // 2. Your Telegram Name
                     page.drawText('🚀 Join: @hamari_pdf', {
                         x: 20, y: height - 23,
                         size: 13, color: rgb(0, 0.4, 0.8)
                     });
 
-                    // Full Page Clickable Link
+                    // 3. THE MAGIC LINK (Pure page par)
                     const linkAnnot = pdfDoc.context.obj({
-                        Type: 'Annot', Subtype: 'Link',
+                        Type: 'Annot',
+                        Subtype: 'Link',
                         Rect: [0, 0, width, height],
                         Border: [0, 0, 0],
-                        A: { Type: 'Action', S: 'URI', URI: PDFString.of(myLink) }
+                        A: {
+                            Type: 'Action',
+                            S: 'URI',
+                            URI: PDFString.of(myLink)
+                        }
                     });
+
                     const linkRef = pdfDoc.context.register(linkAnnot);
                     page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([linkRef]));
                 }
 
-                const pdfBytes = await pdfDoc.save();
+                const pdfBytes = await pdfDoc.save({ useObjectStreams: false });
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 const url = URL.createObjectURL(blob);
                 
@@ -92,11 +95,11 @@
                 a.download = originalName;
                 a.click();
 
-                status.innerText = "SUCCESS! ✅";
+                status.innerText = "SUCCESS! 1000% Accurate ✅";
                 status.style.color = "#3fb950";
             } catch (err) {
                 console.error(err);
-                status.innerText = "Error: Ye file bohot zyada protected hai.";
+                status.innerText = "Error: File encryption bohot high hai.";
                 status.style.color = "#f85149";
             } finally {
                 btn.disabled = false;
