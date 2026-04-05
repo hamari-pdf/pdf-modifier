@@ -3,92 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@hamari_pdf - Super Tool</title>
+    <title>@hamari_pdf - Ultimate Fix</title>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <style>
-        body { background: #010409; color: white; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 40px 10px; }
-        .main-box { background: #0d1117; border: 2px solid #238636; padding: 30px; border-radius: 15px; display: inline-block; width: 100%; max-width: 400px; box-shadow: 0 0 25px rgba(35, 134, 54, 0.2); }
-        h2 { color: #238636; margin-top: 0; }
-        input { margin: 20px 0; width: 100%; color: #8b949e; }
-        button { background: #238636; color: white; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; }
-        button:active { transform: scale(0.98); }
-        #status { margin-top: 20px; font-size: 14px; font-weight: bold; }
+        body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; padding: 50px 20px; }
+        .card { background: #161b22; border: 2px solid #30363d; padding: 30px; border-radius: 12px; display: inline-block; width: 100%; max-width: 400px; }
+        h2 { color: #58a6ff; margin: 0 0 20px 0; }
+        input { margin-bottom: 20px; width: 100%; }
+        button { background: #238636; color: white; padding: 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; }
+        #status { margin-top: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="main-box">
-        <h2>✅ @hamari_pdf Fixer</h2>
-        <p style="font-size: 12px; color: #8b949e;">Har Page Clickable + Same Name</p>
+    <div class="card">
+        <h2>🔥 @hamari_pdf Pro</h2>
+        <p style="font-size: 12px; color: #8b949e; margin-bottom: 20px;">Force Link Injection & Same Name</p>
         
         <input type="file" id="pdfInput" accept="application/pdf">
-        <button id="workBtn" onclick="processPDF()">MAGIC START ⚡</button>
+        <button id="btn" onclick="processPDF()">FIX & DOWNLOAD ⚡</button>
         
-        <div id="status">Ready for Action</div>
+        <div id="status">Ready</div>
     </div>
 
     <script>
         async function processPDF() {
             const input = document.getElementById('pdfInput');
             const status = document.getElementById('status');
-            const btn = document.getElementById('workBtn');
+            const btn = document.getElementById('btn');
 
-            if (!input.files[0]) return alert("File chuno pehle!");
+            if (!input.files[0]) return alert("File chuno!");
 
             const originalName = input.files[0].name;
-            const myLink = 'https://t.me/hamari_pdf'; // FIXED LINK
+            const myLink = 'https://t.me/hamari_pdf';
 
             btn.disabled = true;
-            status.innerText = "Unlocking & Injecting... ⏳";
+            status.innerText = "Bypassing Locks... ⏳";
             status.style.color = "#e3b341";
 
             try {
                 const arrayBuffer = await input.files[0].arrayBuffer();
                 const { PDFDocument, rgb, PDFString, PDFName } = PDFLib;
 
-                // Super Bypass: ignoreEncryption use karke protected PDF ko force load karna
-                const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
-                const pages = pdfDoc.getPages();
+                // 1. Source PDF load karo (Encryption ignore karke)
+                const srcDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+                
+                // 2. Ek Naya Khali PDF banao (Security hatane ke liye)
+                const pdfDoc = await PDFDocument.create();
+                
+                // 3. Purane pages ko naye PDF mein copy karo
+                const pagesToCopy = srcDoc.getPageIndices();
+                const copiedPages = await pdfDoc.copyPages(srcDoc, pagesToCopy);
 
-                for (const page of pages) {
+                for (const page of copiedPages) {
+                    pdfDoc.addPage(page);
                     const { width, height } = page.getSize();
 
-                    // 1. Purana text hide karo (Top bar)
+                    // Masking (Purana naam chhupane ke liye)
                     page.drawRectangle({
                         x: 0, y: height - 35,
                         width: width, height: 35,
                         color: rgb(1, 1, 1)
                     });
 
-                    // 2. Branding lagao
+                    // Naya Branding
                     page.drawText('🚀 Join: @hamari_pdf', {
                         x: 20, y: height - 23,
                         size: 13, color: rgb(0, 0.4, 0.8)
                     });
 
-                    // 3. FORCE LINK INJECTION (Sabse Accurate Method)
+                    // Full Page Clickable Link
                     const linkAnnot = pdfDoc.context.obj({
-                        Type: 'Annot',
-                        Subtype: 'Link',
-                        Rect: [0, 0, width, height], // Full page area
+                        Type: 'Annot', Subtype: 'Link',
+                        Rect: [0, 0, width, height],
                         Border: [0, 0, 0],
-                        A: {
-                            Type: 'Action',
-                            S: 'URI',
-                            URI: PDFString.of(myLink)
-                        }
+                        A: { Type: 'Action', S: 'URI', URI: PDFString.of(myLink) }
                     });
-
                     const linkRef = pdfDoc.context.register(linkAnnot);
-                    let annots = page.node.get(PDFName.of('Annots'));
-
-                    if (!annots) {
-                        page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([linkRef]));
-                    } else {
-                        // Agar annots reference hai to use resolve karke push karna
-                        const resolvedAnnots = pdfDoc.context.lookup(annots);
-                        resolvedAnnots.push(linkRef);
-                    }
+                    page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([linkRef]));
                 }
 
                 const pdfBytes = await pdfDoc.save();
@@ -97,16 +89,14 @@
                 
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = originalName; // SAME NAME
-                document.body.appendChild(a);
+                a.download = originalName;
                 a.click();
-                document.body.removeChild(a);
 
-                status.innerText = "100% SUCCESS ✅";
-                status.style.color = "#238636";
+                status.innerText = "SUCCESS! ✅";
+                status.style.color = "#3fb950";
             } catch (err) {
                 console.error(err);
-                status.innerText = "Critical Error: PDF is heavily locked.";
+                status.innerText = "Error: Ye file bohot zyada protected hai.";
                 status.style.color = "#f85149";
             } finally {
                 btn.disabled = false;
