@@ -3,124 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Modifier Pro - @hamari_pdf</title>
+    <title>@hamari_pdf Tool Pro</title>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <style>
-        body { text-align: center; font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: white; padding: 50px; }
-        .container { background: #16213e; padding: 40px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: inline-block; border: 2px solid #0f3460; }
-        h2 { color: #e94560; margin-bottom: 5px; }
-        p { color: #ccc; font-size: 14px; }
-        input[type="file"] { margin: 20px 0; display: block; width: 100%; }
-        button { padding: 14px 30px; background: #e94560; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; transition: 0.3s; width: 100%; }
-        button:hover { background: #d83a54; transform: scale(1.02); }
-        #status { margin-top: 20px; font-weight: bold; }
+        body { text-align: center; font-family: sans-serif; background: #0f172a; color: white; padding: 30px; }
+        .box { background: #1e293b; padding: 30px; border-radius: 15px; border: 1px solid #334155; display: inline-block; max-width: 90%; }
+        h2 { color: #38bdf8; }
+        input { margin: 20px 0; width: 100%; }
+        button { background: #38bdf8; color: #0f172a; padding: 15px 30px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; }
+        #status { margin-top: 20px; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>🚀 @hamari_pdf Tool</h2>
-        <p>Full Page Clickable + Auto Watermark</p>
-
-        <input type="file" id="upload" accept="application/pdf">
-        <button id="btn" onclick="modifyAndDownloadPDF()">Generate Magic PDF ⚡</button>
-
-        <div id="status"></div>
+    <div class="box">
+        <h2>🔥 @hamari_pdf Magic</h2>
+        <p>Watermark + Full Page Clickable Link</p>
+        
+        <input type="file" id="pdfInput" accept="application/pdf">
+        <button id="mainBtn" onclick="processPDF()">Start Processing ⚡</button>
+        
+        <div id="status">Ready...</div>
     </div>
 
     <script>
-        async function modifyAndDownloadPDF() {
-            const fileInput = document.getElementById('upload');
-            const statusText = document.getElementById('status');
-            const btn = document.getElementById('btn');
-            
-            if (fileInput.files.length === 0) {
-                alert("File toh choose karo bhai!");
-                return;
-            }
+        async function processPDF() {
+            const input = document.getElementById('pdfInput');
+            const status = document.getElementById('status');
+            const btn = document.getElementById('mainBtn');
 
-            statusText.innerText = "Processing... Thoda time lag sakta hai ⏳";
-            statusText.style.color = "yellow";
+            if (!input.files[0]) return alert("Pehle file select karo!");
+
+            status.innerText = "Processing... Mobile par thoda wait karein ⏳";
+            status.style.color = "#fbbf24";
             btn.disabled = true;
 
             try {
-                const file = fileInput.files[0];
-                const arrayBuffer = await file.arrayBuffer();
+                const arrayBuffer = await input.files[0].arrayBuffer();
+                const { PDFDocument, rgb, PDFString } = PDFLib;
 
-                const { PDFDocument, rgb, PDFName, PDFString, PDFArray } = PDFLib;
-                
-                // Load PDF with ignoreEncryption: true taaki error kam aaye
+                // Fast Load
                 const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
                 const pages = pdfDoc.getPages();
 
                 for (const page of pages) {
                     const { width, height } = page.getSize();
-                    
-                    // 1. Purana text chupane ke liye White Box
+
+                    // 1. Top White Cover (Purana hatane ke liye)
                     page.drawRectangle({
-                        x: 0,
-                        y: height - 35,
-                        width: width,
-                        height: 35,
-                        color: rgb(1, 1, 1),
-                    });
-                    
-                    // 2. Aapka Naya Header
-                    page.drawText('Join Telegram: @hamari_pdf', {
-                        x: 20,
-                        y: height - 22,
-                        size: 12,
-                        color: rgb(0, 0.44, 0.73),
+                        x: 0, y: height - 35,
+                        width: width, height: 35,
+                        color: rgb(1, 1, 1)
                     });
 
-                    // 3. Poore page ko link banana (Improved Logic)
-                    const linkAnnotation = pdfDoc.context.obj({
-                        Type: 'Annot',
-                        Subtype: 'Link',
+                    // 2. Branding Text
+                    page.drawText('@hamari_pdf | Click here to Join', {
+                        x: 20, y: height - 22,
+                        size: 12, color: rgb(0, 0.4, 0.8)
+                    });
+
+                    // 3. Invisible Link (Full Page)
+                    const link = pdfDoc.context.obj({
+                        Type: 'Annot', Subtype: 'Link',
                         Rect: [0, 0, width, height],
                         Border: [0, 0, 0],
-                        A: {
-                            Type: 'Action',
-                            S: 'URI',
-                            URI: PDFString.of('https://t.me/hamari_pdf'),
-                        },
+                        A: { Type: 'Action', S: 'URI', URI: PDFString.of('https://t.me/hamari_pdf') }
                     });
-
-                    const linkRef = pdfDoc.context.register(linkAnnotation);
-
-                    // Annotations array ko safely handle karna
-                    let annots = page.node.lookup(PDFName.of('Annots'));
-                    if (!annots) {
-                        annots = pdfDoc.context.obj([]);
-                        page.node.set(PDFName.of('Annots'), annots);
-                    }
                     
-                    // Agar annots direct array nahi hai (reference hai), toh push direct nahi hota
-                    if (annots instanceof PDFArray) {
-                        annots.push(linkRef);
-                    } else {
-                        // Agar structure complex hai toh ye backup kaam karega
-                        try {
-                            annots.push(linkRef);
-                        } catch(e) {
-                            console.log("Skipping link on one page due to structure");
-                        }
-                    }
+                    const linkRef = pdfDoc.context.register(link);
+                    const annots = page.node.get(PDFLib.PDFName.of('Annots')) || pdfDoc.context.obj([]);
+                    if (!page.node.has(PDFLib.PDFName.of('Annots'))) page.node.set(PDFLib.PDFName.of('Annots'), annots);
+                    annots.push(linkRef);
                 }
 
+                // Save and Download
                 const pdfBytes = await pdfDoc.save();
-                const blob = new Blob([pdfBytes], { type: "application/pdf" });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = "Fixed_Hamari_PDF.pdf";
-                link.click();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "Hamari_PDF_" + Date.now() + ".pdf";
+                a.click();
 
-                statusText.innerText = "Success! PDF Ready ✅";
-                statusText.style.color = "#4cd137";
-            } catch (error) {
-                console.error(error);
-                statusText.innerText = "Error: File bahut heavy ya protected hai.";
-                statusText.style.color = "red";
+                status.innerText = "Success! ✅ Downloaded";
+                status.style.color = "#4ade80";
+            } catch (e) {
+                console.error(e);
+                status.innerText = "Error: File size zyada hai ya browser weak hai.";
+                status.style.color = "#f87171";
             } finally {
                 btn.disabled = false;
             }
