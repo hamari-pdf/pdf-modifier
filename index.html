@@ -3,95 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@hamari_pdf Final Tool</title>
+    <title>@hamari_pdf - Super Tool</title>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 40px; }
-        .box { background: #1e293b; padding: 30px; border-radius: 15px; border: 2px solid #38bdf8; display: inline-block; width: 100%; max-width: 400px; }
-        input { margin: 20px 0; width: 100%; color: white; }
-        button { background: #38bdf8; color: #0f172a; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; }
-        #status { margin-top: 20px; font-weight: bold; }
+        body { background: #010409; color: white; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 40px 10px; }
+        .main-box { background: #0d1117; border: 2px solid #238636; padding: 30px; border-radius: 15px; display: inline-block; width: 100%; max-width: 400px; box-shadow: 0 0 25px rgba(35, 134, 54, 0.2); }
+        h2 { color: #238636; margin-top: 0; }
+        input { margin: 20px 0; width: 100%; color: #8b949e; }
+        button { background: #238636; color: white; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; }
+        button:active { transform: scale(0.98); }
+        #status { margin-top: 20px; font-size: 14px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="box">
-        <h2 style="color:#38bdf8; margin:0;">🔥 @hamari_pdf Fix</h2>
-        <p style="font-size:12px; color:#94a3b8;">Full Clickable + Original Name</p>
+    <div class="main-box">
+        <h2>✅ @hamari_pdf Fixer</h2>
+        <p style="font-size: 12px; color: #8b949e;">Har Page Clickable + Same Name</p>
         
         <input type="file" id="pdfInput" accept="application/pdf">
-        <button id="btn" onclick="processPDF()">START PROCESSING ⚡</button>
+        <button id="workBtn" onclick="processPDF()">MAGIC START ⚡</button>
         
-        <div id="status">Waiting for file...</div>
+        <div id="status">Ready for Action</div>
     </div>
 
     <script>
         async function processPDF() {
             const input = document.getElementById('pdfInput');
             const status = document.getElementById('status');
-            const btn = document.getElementById('btn');
+            const btn = document.getElementById('workBtn');
 
-            if (!input.files[0]) return alert("File select karo bhai!");
+            if (!input.files[0]) return alert("File chuno pehle!");
 
             const originalName = input.files[0].name;
+            const myLink = 'https://t.me/hamari_pdf'; // FIXED LINK
+
             btn.disabled = true;
-            status.innerText = "Deep Injecting Link... ⏳";
-            status.style.color = "#fbbf24";
+            status.innerText = "Unlocking & Injecting... ⏳";
+            status.style.color = "#e3b341";
 
             try {
                 const arrayBuffer = await input.files[0].arrayBuffer();
-                const { PDFDocument, rgb, PDFString, PDFName, PDFArray } = PDFLib;
+                const { PDFDocument, rgb, PDFString, PDFName } = PDFLib;
 
+                // Super Bypass: ignoreEncryption use karke protected PDF ko force load karna
                 const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
                 const pages = pdfDoc.getPages();
-                const myLink = 'https://t.me/hamari_pdf';
 
                 for (const page of pages) {
                     const { width, height } = page.getSize();
 
-                    // 1. Top Strip (Masking)
+                    // 1. Purana text hide karo (Top bar)
                     page.drawRectangle({
                         x: 0, y: height - 35,
                         width: width, height: 35,
                         color: rgb(1, 1, 1)
                     });
 
-                    // 2. Branding
+                    // 2. Branding lagao
                     page.drawText('🚀 Join: @hamari_pdf', {
                         x: 20, y: height - 23,
                         size: 13, color: rgb(0, 0.4, 0.8)
                     });
 
-                    // 3. FORCE LINK INJECTION (Sabse Solid Tarika)
+                    // 3. FORCE LINK INJECTION (Sabse Accurate Method)
                     const linkAnnot = pdfDoc.context.obj({
                         Type: 'Annot',
                         Subtype: 'Link',
-                        Rect: [0, 0, width, height],
+                        Rect: [0, 0, width, height], // Full page area
                         Border: [0, 0, 0],
-                        A: { Type: 'Action', S: 'URI', URI: PDFString.of(myLink) }
+                        A: {
+                            Type: 'Action',
+                            S: 'URI',
+                            URI: PDFString.of(myLink)
+                        }
                     });
 
                     const linkRef = pdfDoc.context.register(linkAnnot);
-
-                    // Safely find or create Annots array
                     let annots = page.node.get(PDFName.of('Annots'));
-                    
+
                     if (!annots) {
-                        // Agar Annots folder nahi hai toh naya banao
                         page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([linkRef]));
-                    } else if (annots instanceof PDFArray) {
-                        // Agar array hai toh usme add karo
-                        annots.push(linkRef);
                     } else {
-                        // Agar folder reference hai toh use resolve karke add karo
-                        try {
-                            const resolvedAnnots = pdfDoc.context.lookup(annots);
-                            if (resolvedAnnots instanceof PDFArray) {
-                                resolvedAnnots.push(linkRef);
-                            }
-                        } catch (e) {
-                            console.log("Fallback for specific PDF structure");
-                        }
+                        // Agar annots reference hai to use resolve karke push karna
+                        const resolvedAnnots = pdfDoc.context.lookup(annots);
+                        resolvedAnnots.push(linkRef);
                     }
                 }
 
@@ -101,17 +97,17 @@
                 
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = originalName;
+                a.download = originalName; // SAME NAME
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
 
-                status.innerText = "100% DONE ✅";
-                status.style.color = "#4ade80";
+                status.innerText = "100% SUCCESS ✅";
+                status.style.color = "#238636";
             } catch (err) {
                 console.error(err);
-                status.innerText = "Error: Ye PDF protected hai.";
-                status.style.color = "#f87171";
+                status.innerText = "Critical Error: PDF is heavily locked.";
+                status.style.color = "#f85149";
             } finally {
                 btn.disabled = false;
             }
