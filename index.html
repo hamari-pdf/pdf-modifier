@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PDF Modifier</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial;
+      background: #f5f5f5;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      background: #0088cc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>PDF Tool Working ✅</h2>
+
+<input type="file" id="upload" accept="application/pdf">
+<br>
+<button onclick="loadPDF()">Upload & Edit</button>
+
+<br><br>
+<canvas id="pdfCanvas"></canvas>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+<script>
+const url = "https://t.me/hamari_pdf"; // YOUR LINK
+
+function loadPDF() {
+  const file = document.getElementById('upload').files[0];
+  const fileReader = new FileReader();
+
+  fileReader.onload = function() {
+    const typedarray = new Uint8Array(this.result);
+
+    pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+      pdf.getPage(1).then(function(page) {
+
+        const scale = 1.5;
+        const viewport = page.getViewport({scale: scale});
+
+        const canvas = document.getElementById('pdfCanvas');
+        const context = canvas.getContext('2d');
+
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        page.render({
+          canvasContext: context,
+          viewport: viewport
+        }).promise.then(() => {
+
+          // ❌ NO WATERMARK HERE (REMOVED)
+
+          // ✅ CLICK REDIRECT
+          canvas.addEventListener("click", () => {
+            window.open(url, "_blank");
+          });
+
+        });
+
+      });
+    });
+  };
+
+  fileReader.readAsArrayBuffer(file);
+}
+</script>
+
+</body>
+</html>
