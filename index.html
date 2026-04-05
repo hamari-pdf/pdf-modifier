@@ -18,8 +18,7 @@
     <div class="card">
         <h2 style="color:#58a6ff;">🚀 @hamari_pdf — Link Injector</h2>
         <p style="color:#8b949e; font-size:13px;">
-            Har page pe <b>@hamari_pdf</b> naam + poora page clickable.<br>
-            Purani links remove. PDF naam same.
+            Har page pe bada <b>@hamari_pdf</b> naam + clickable link visible hogi top par.
         </p>
         <input type="file" id="pdfInput" accept="application/pdf">
         <button id="btn" onclick="processPDF()">🔗 INJECT & DOWNLOAD ✅</button>
@@ -36,6 +35,8 @@ async function processPDF() {
 
     const originalName = input.files[0].name;
     const targetLink   = 'https://t.me/hamari_pdf';
+    const displayLink  = 't.me/hamari_pdf';
+    const channelName  = '@hamari_pdf';
 
     btn.disabled       = true;
     status.innerText   = "⏳ Processing...";
@@ -43,7 +44,7 @@ async function processPDF() {
 
     try {
         const arrayBuffer = await input.files[0].arrayBuffer();
-        const { PDFDocument, rgb, PDFString, PDFName, PDFArray, PDFDict, PDFRef } = PDFLib;
+        const { PDFDocument, rgb, PDFString, PDFName } = PDFLib;
 
         const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
         const pages  = pdfDoc.getPages();
@@ -54,53 +55,56 @@ async function processPDF() {
             // ── 1. Purani saari annotations remove ──
             page.node.delete(PDFName.of('Annots'));
 
-            // ── 2. Top strip white background ──
+            // ── 2. White strip — thodi badi height (naam + link dono fit hon) ──
+            const stripHeight = 38;
             page.drawRectangle({
                 x: 0,
-                y: height - 22,
+                y: height - stripHeight,
                 width: width,
-                height: 22,
+                height: stripHeight,
                 color: rgb(1, 1, 1),
             });
 
-            // ── 3. Sirf @hamari_pdf text ──
-            page.drawText('@hamari_pdf', {
+            // ── 3. Bada @hamari_pdf naam ──
+            page.drawText(channelName, {
                 x: 10,
-                y: height - 15,
-                size: 10,
+                y: height - 16,
+                size: 14,           // BADA size
                 color: rgb(0.04, 0.39, 0.8),
             });
 
-            // ── 4. FULL PAGE clickable annotation (correct method) ──
-            // URI Action dictionary
-            const uriAction = pdfDoc.context.obj({
-                Type: 'Action',
-                S:    'URI',
-                URI:  PDFString.of(targetLink),
+            // ── 4. Visible link uske neeche ──
+            page.drawText(displayLink, {
+                x: 10,
+                y: height - 30,
+                size: 9,
+                color: rgb(0.0, 0.53, 0.84),
             });
 
-            // Link annotation — Rect covers ENTIRE page [x1, y1, x2, y2]
+            // ── 5. Clickable annotation sirf strip ke upar (visible area) ──
             const linkAnnot = pdfDoc.context.obj({
                 Type:    'Annot',
                 Subtype: 'Link',
-                Rect:    pdfDoc.context.obj([0, 0, width, height]),
-                F:       4,               // Print flag
+                Rect:    pdfDoc.context.obj([0, height - stripHeight, width, height]),
+                F:       4,
                 Border:  pdfDoc.context.obj([0, 0, 0]),
-                BS: pdfDoc.context.obj({ W: 0 }),   // Border style width 0
-                H:       'N',             // No highlight on click
-                A:       uriAction,
+                BS:      pdfDoc.context.obj({ W: 0 }),
+                H:       'N',
+                A: {
+                    Type: 'Action',
+                    S:    'URI',
+                    URI:  PDFString.of(targetLink),
+                },
             });
 
             const annotRef = pdfDoc.context.register(linkAnnot);
-
-            // Annots array set karo
             page.node.set(
                 PDFName.of('Annots'),
                 pdfDoc.context.obj([annotRef])
             );
         }
 
-        // ── 5. Save & Download — same naam ──
+        // ── 6. Save & Download — same naam ──
         const pdfBytes = await pdfDoc.save();
         const blob     = new Blob([pdfBytes], { type: 'application/pdf' });
         const url      = URL.createObjectURL(blob);
