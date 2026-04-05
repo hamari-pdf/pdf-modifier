@@ -3,26 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hamari PDF - Final Pro</title>
+    <title>@hamari_pdf Tool Pro</title>
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
     <style>
-        body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; padding: 50px 20px; }
-        .card { background: #161b22; border: 2px solid #30363d; padding: 30px; border-radius: 12px; display: inline-block; width: 100%; max-width: 400px; }
-        input { margin-bottom: 20px; width: 100%; }
-        button { background: #238636; color: white; padding: 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; }
-        #status { margin-top: 20px; font-weight: bold; }
+        body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; padding: 40px 10px; }
+        .card { background: #161b22; border: 1px solid #30363d; padding: 30px; border-radius: 12px; display: inline-block; width: 100%; max-width: 380px; }
+        button { background: #238636; color: white; padding: 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px; font-size: 16px; }
+        #status { margin-top: 20px; font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2 style="color:#58a6ff;">🚀 @hamari_pdf Fixer</h2>
-        <p style="font-size: 12px; color: #8b949e; margin-bottom: 20px;">Direct Link Injection | Original Name</p>
+        <h2 style="color:#58a6ff;">🚀 @hamari_pdf Final</h2>
+        <p style="color:#8b949e; font-size:12px;">Link: https://t.me/hamari_pdf</p>
         
         <input type="file" id="pdfInput" accept="application/pdf">
-        <button id="btn" onclick="processPDF()">MAGIC GENERATE ⚡</button>
+        <button id="btn" onclick="processPDF()">FIX & DOWNLOAD ✅</button>
         
-        <div id="status">Taiyar...</div>
+        <div id="status">Waiting...</div>
     </div>
 
     <script>
@@ -31,45 +30,41 @@
             const status = document.getElementById('status');
             const btn = document.getElementById('btn');
 
-            if (!input.files[0]) return alert("Bhai file toh chuno!");
+            if (!input.files[0]) return alert("Pehle file chuno!");
 
             const originalName = input.files[0].name;
             const myLink = 'https://t.me/hamari_pdf';
 
             btn.disabled = true;
-            status.innerText = "Processing... Please Wait ⏳";
+            status.innerText = "Processing... Thoda sabr rakho ⏳";
             status.style.color = "#e3b341";
 
             try {
                 const arrayBuffer = await input.files[0].arrayBuffer();
                 const { PDFDocument, rgb, PDFString, PDFName } = PDFLib;
 
-                // 1. Load PDF with max safety
+                // Load PDF (Bina kisi extra setting ke for speed)
                 const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
                 const pages = pdfDoc.getPages();
 
                 for (const page of pages) {
                     const { width, height } = page.getSize();
 
-                    // A. White Box (Top Strip) - Purana naam hatane ke liye
+                    // 1. Top White Box (Watermark hide karne ke liye)
                     page.drawRectangle({
-                        x: 0,
-                        y: height - 35,
-                        width: width,
-                        height: 35,
-                        color: rgb(1, 1, 1),
+                        x: 0, y: height - 35,
+                        width: width, height: 35,
+                        color: rgb(1, 1, 1)
                     });
 
-                    // B. Naya Watermark
-                    page.drawText('🚀 Join: @hamari_pdf', {
-                        x: 20,
-                        y: height - 23,
-                        size: 13,
-                        color: rgb(0, 0.4, 0.8),
+                    // 2. Branding @hamari_pdf
+                    page.drawText('Join: @hamari_pdf', {
+                        x: 20, y: height - 23,
+                        size: 13, color: rgb(0, 0.4, 0.8)
                     });
 
-                    // C. Full Page Clickable Link (The Pro Way)
-                    const linkAnnotation = pdfDoc.context.obj({
+                    // 3. FULL PAGE LINK (Universal Method)
+                    const linkAnnot = pdfDoc.context.obj({
                         Type: 'Annot',
                         Subtype: 'Link',
                         Rect: [0, 0, width, height],
@@ -77,25 +72,22 @@
                         A: {
                             Type: 'Action',
                             S: 'URI',
-                            URI: PDFString.of(myLink),
-                        },
+                            URI: PDFString.of(myLink)
+                        }
                     });
 
-                    const linkRef = pdfDoc.context.register(linkAnnotation);
-                    
-                    // Safely adding to Annots
+                    const linkRef = pdfDoc.context.register(linkAnnot);
                     let annots = page.node.get(PDFName.of('Annots'));
+
                     if (!annots) {
                         page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([linkRef]));
                     } else {
-                        const existingAnnots = pdfDoc.context.lookup(annots);
-                        if (Array.isArray(existingAnnots.array) || existingAnnots.push) {
-                           existingAnnots.push(linkRef);
-                        }
+                        const resolvedAnnots = pdfDoc.context.lookup(annots);
+                        resolvedAnnots.push(linkRef);
                     }
                 }
 
-                // 2. Save with metadata preservation
+                // Metadata preserve karke save karna
                 const pdfBytes = await pdfDoc.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 const url = URL.createObjectURL(blob);
@@ -107,11 +99,11 @@
                 a.click();
                 document.body.removeChild(a);
 
-                status.innerText = "100% DONE ✅";
+                status.innerText = "SUCCESS! Download Shuru ✅";
                 status.style.color = "#3fb950";
             } catch (err) {
                 console.error(err);
-                status.innerText = "Error: Mobile browser memory full ya file locked.";
+                status.innerText = "Error: File memory se bahar hai ya encrypted hai.";
                 status.style.color = "#f85149";
             } finally {
                 btn.disabled = false;
